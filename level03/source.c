@@ -4,7 +4,7 @@ int __cdecl decrypt(char a1)
   unsigned int v3; // [esp+24h] [ebp-24h]
   char v4[29]; // [esp+2Bh] [ebp-1Dh] BYREF
 
-  *(_DWORD *)&v4[17] = __readgsdword(0x14u);
+  v4[17] = '\0';
   strcpy(v4, "Q}|u`sfg~sf{}|a3");
   v3 = strlen(v4);
   for ( i = 0; i < v3; ++i )
