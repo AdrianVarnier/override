@@ -1,28 +1,21 @@
-int __cdecl decrypt(char a1)
+int decrypt(char c)
 {
-  unsigned int i; // [esp+20h] [ebp-28h]
-  unsigned int v3; // [esp+24h] [ebp-24h]
-  char v4[29]; // [esp+2Bh] [ebp-1Dh] BYREF
+  char  s[29];
 
-  v4[17] = '\0';
-  strcpy(v4, "Q}|u`sfg~sf{}|a3");
-  v3 = strlen(v4);
-  for ( i = 0; i < v3; ++i )
-    v4[i] ^= a1;
-  if ( !strcmp(v4, "Congratulations!") )
+  s[17] = '\0';
+  strcpy(s, "Q}|u`sfg~sf{}|a3");
+  for (int i = 0; i < strlen(s); ++i)
+    s[i] ^= c;
+  if ( !strcmp(c, "Congratulations!") )
     return system("/bin/sh");
   else
     return puts("\nInvalid Password");
 }
-// 8048746: positive sp value 4 has been found
 
-//----- (08048747) --------------------------------------------------------
-int __cdecl test(int a1, int a2)
+int test(int x, int y)
 {
-  int result; // eax
-  char v3; // al
-
-  switch ( a2 - a1 )
+  int result = x - y;
+  switch (result)
   {
     case 1:
     case 2:
@@ -39,29 +32,28 @@ int __cdecl test(int a1, int a2)
     case 19:
     case 20:
     case 21:
-      result = decrypt(a2 - a1);
+      decrypt(result);
       break;
     default:
-      v3 = rand();
-      result = decrypt(v3);
+      result  = rand();
+      decrypt(result);
       break;
   }
-  return result;
+  return (result);
 }
 
-//----- (0804885A) --------------------------------------------------------
-int __cdecl main(int argc, const char **argv, const char **envp)
+int main(int argc, const char **argv, const char **envp)
 {
-  unsigned int v3; // eax
-  int savedregs; // [esp+20h] [ebp+0h] BYREF
+  unsigned int time;
+  int x;
 
-  v3 = time(0);
-  srand(v3);
+  time = time(0);
+  srand(time);
   puts("***********************************");
   puts("*\t\tlevel03\t\t**");
   puts("***********************************");
   printf("Password:");
-  __isoc99_scanf("%d", &savedregs);
-  test(savedregs, 322424845);
+  scanf("%d", &x);
+  test(x, 322424845);
   return 0;
 }
