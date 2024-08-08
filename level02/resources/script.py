@@ -7,7 +7,7 @@ hex_values = [
 ]
 
 result = ''.join(
-    bytes.fromhex(h)[::-1].decode('ascii', errors='ignore') 
+    bytes.fromhex(h)[::-1].decode('ascii')
     for h in hex_values
 )
 
