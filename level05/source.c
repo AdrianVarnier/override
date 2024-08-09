@@ -1,7 +1,7 @@
 int main(int argc, const char **argv, const char **envp)
 {
-  char s[100]; // [esp+28h] [ebp-70h] BYREF
-  unsigned int i; // [esp+8Ch] [ebp-Ch]
+  char s[100];
+  unsigned int i;
 
   i = 0;
   fgets(s, 100, stdin);
