@@ -45,11 +45,6 @@ and then
 
 The address of the environment variable storing our shellcode is 0xffffd8d6, we will add 12 (0xffffd87e) to be sure this address correspond to a NOP instruction, which gives us, in decimal:
 ffff = 65535 / d87e = 55422
-Since we're in little endian, we start with `d8d6`, minus 8 (because of the 8 bytes of the address of `exit()`): 55414.
+Since we're in little endian, we start with `d87e`, minus 8 (because of the 8 bytes of the address of `exit()`): 55414.
 Then, for `ffff` minus 8 and minus 55414, so we get: 10113.
 We will place each value next to each other on the stack, therefore they will be placed at index 10 and index 11, respectively.
-
-ffff d8e2
-
-55522 - 8 = 55514
-65535 - 55514 - 8 = 10013
