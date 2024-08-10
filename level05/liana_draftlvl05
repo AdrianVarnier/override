@@ -1,8 +1,0 @@
-
-0x080497e0 <exit-got>
-
-0xf7e6aed0 <system> 4159090384 but it's higher than int max.
-
-0xf7e5eb70 <exit> 4159040368
-
-0xf7f897ec <bin/sh> 4160264172

