@@ -16,4 +16,6 @@ Usage: ./level08 filename
 ERROR: Failed to open (null)
 level08@OverRide:~$ ./level08 /home/users/level09/.pass
 ERROR: Failed to open ./backups//home/users/level09/.pass
+level08@OverRide:~$ ./level08 home/users/level09/.pass
+ERROR: Failed to open home/users/level09/.pass
 ```
