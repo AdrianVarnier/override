@@ -1,25 +1,22 @@
 int get_unum()
 {
-  int v1[3]; // [esp+1Ch] [ebp-Ch] BYREF
-
-  v1[0] = 0;
+  unsigned int unum = 0;
   fflush(stdout);
-  __isoc99_scanf(&unk_8048AD0, v1);
+  scanf("%u", &unum);
   clear_stdin();
-  return v1[0];
+  return unum;
 }
 
-//----- (08048630) --------------------------------------------------------
-int __cdecl store_number(int a1)
+int store_number(int arr_addr)
 {
-  unsigned int unum; // [esp+18h] [ebp-10h]
-  unsigned int v3; // [esp+1Ch] [ebp-Ch]
+  unsigned int unum;
+  unsigned int index;
 
   printf(" Number: ");
   unum = get_unum();
   printf(" Index: ");
-  v3 = get_unum();
-  if ( v3 == 3 * (v3 / 3) || HIBYTE(unum) == 183 )
+  index = get_unum();
+  if (index == 3 * (index / 3) || HIBYTE(unum) == 183)
   {
     puts(" *** ERROR! ***");
     puts("   This index is reserved for wil!");
@@ -28,48 +25,35 @@ int __cdecl store_number(int a1)
   }
   else
   {
-    *(_DWORD *)(a1 + 4 * v3) = unum;
+    *(_DWORD *)(arr_addr + 4 * index) = unum;
     return 0;
   }
 }
 
-//----- (080486D7) --------------------------------------------------------
-int __cdecl read_number(int a1)
+int read_number(int arr_addr)
 {
-  int unum; // [esp+1Ch] [ebp-Ch]
+  int unum;
 
   printf(" Index: ");
   unum = get_unum();
-  printf(" Number at data[%u] is %u\n", unum, *(_DWORD *)(a1 + 4 * unum));
+  printf(" Number at data[%u] is %u\n", unum, *(_DWORD *)(arr_addr + 4 * unum));
   return 0;
 }
 
-//----- (08048723) --------------------------------------------------------
-int __cdecl main(int argc, const char **argv, const char **envp)
+int main(int argc, const char **argv, const char **envp)
 {
-  _BYTE v6[400]; // [esp+24h] [ebp-1B8h] BYREF
-  int number; // [esp+1B4h] [ebp-28h]
-  char s[4]; // [esp+1B8h] [ebp-24h] BYREF
-  int v9; // [esp+1BCh] [ebp-20h]
-  int v10; // [esp+1C0h] [ebp-1Ch]
-  int v11; // [esp+1C4h] [ebp-18h]
-  int v12; // [esp+1C8h] [ebp-14h]
-  unsigned int v13; // [esp+1CCh] [ebp-10h]
+  unsigned int  arr[100];
+  char          buffer[20];
+  int           ret = 0;
 
-  v13 = __readgsdword(0x14u);
-  number = 0;
-  *(_DWORD *)s = 0;
-  v9 = 0;
-  v10 = 0;
-  v11 = 0;
-  v12 = 0;
-  memset(v6, 0, sizeof(v6));
-  while ( *argv )
+  bzero(buffer, 20);
+  memset(arr, 0, sizeof(arr));
+  while (*argv)
   {
     memset((void *)*argv, 0, strlen(*argv));
     ++argv;
   }
-  while ( *envp )
+  while (*envp)
   {
     memset((void *)*envp, 0, strlen(*envp));
     ++envp;
@@ -88,30 +72,19 @@ int __cdecl main(int argc, const char **argv, const char **envp)
   while ( 1 )
   {
     printf("Input command: ");
-    number = 1;
-    fgets(s, 20, stdin);
+    ret = 1;
+    fgets(buffer, 20, stdin);
     s[strlen(s) - 1] = 0;
-    if ( !memcmp(s, "store", 5u) )
-    {
-      number = store_number((int)v6);
-      goto LABEL_13;
-    }
-    if ( !memcmp(s, "read", 4u) )
-    {
-      number = read_number((int)v6);
-      goto LABEL_13;
-    }
-    if ( !memcmp(s, "quit", 4u) )
+    if (!memcmp(s, "store", 5u))
+      ret = store_number((int)arr);
+    else if (!memcmp(s, "read", 4u))
+      ret = read_number((int)arr);
+    else if (!memcmp(s, "quit", 4u))
       return 0;
-LABEL_13:
-    if ( number )
-      printf(" Failed to do %s command\n", s);
+    if (ret)
+      printf(" Failed to do %s command\n", buffer);
     else
-      printf(" Completed %s command successfully\n", s);
-    *(_DWORD *)s = 0;
-    v9 = 0;
-    v10 = 0;
-    v11 = 0;
-    v12 = 0;
+      printf(" Completed %s command successfully\n", buffer);
+    bzero(buffer, 20);
   }
 }
