@@ -10,27 +10,15 @@ int secret_backdoor()
 //----- (00000000000008C0) ----------------------------------------------------
 int handle_msg()
 {
-  char v1[140]; // [rsp+0h] [rbp-C0h] BYREF
-  __int64 v2; // [rsp+8Ch] [rbp-34h]
-  __int64 v3; // [rsp+94h] [rbp-2Ch]
-  __int64 v4; // [rsp+9Ch] [rbp-24h]
-  __int64 v5; // [rsp+A4h] [rbp-1Ch]
-  __int64 v6; // [rsp+ACh] [rbp-14h]
-  int v7; // [rsp+B4h] [rbp-Ch]
+  char buffer[140]; // [rsp+0h] [rbp-C0h] BYREF
 
-  v2 = 0LL;
-  v3 = 0LL;
-  v4 = 0LL;
-  v5 = 0LL;
-  v6 = 0LL;
-  v7 = 140;
-  set_username((__int64)v1);
-  set_msg((__int64)v1);
+  set_username((int64_t)buffer);
+  set_msg((int64_t)buffer);
   return puts(">: Msg sent!");
 }
 
 //----- (0000000000000932) ----------------------------------------------------
-char *__fastcall set_msg(__int64 a1)
+char *__fastcall set_msg(int64_t a1)
 {
   char s[1024]; // [rsp+10h] [rbp-400h] BYREF
 
@@ -42,16 +30,16 @@ char *__fastcall set_msg(__int64 a1)
 }
 
 //----- (00000000000009CD) ----------------------------------------------------
-int __fastcall set_username(__int64 a1)
+int set_username(int64_t a1)
 {
   char s[140]; // [rsp+10h] [rbp-90h] BYREF
   int i; // [rsp+9Ch] [rbp-4h]
 
-  memset(s, 0, 0x80uLL);
+  memset(s, 0, 128);
   puts(">: Enter your username");
   printf(">>: ");
   fgets(s, 128, stdin);
-  for ( i = 0; i <= 40 && s[i]; ++i )
+  for (i = 0;i <= 40 && s[i]; ++i)
     *(_BYTE *)(a1 + i + 140) = s[i];
   return printf(">: Welcome, %s", (const char *)(a1 + 140));
 }
