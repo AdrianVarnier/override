@@ -1,51 +1,51 @@
-//----- (000000000000088C) ----------------------------------------------------
-int secret_backdoor()
-{
-  char s[128]; // [rsp+0h] [rbp-80h] BYREF
-
-  fgets(s, 128, stdin);
-  return system(s);
+user_t {
+  char message[140];
+  char name[40];
+  int size;
 }
 
-//----- (00000000000008C0) ----------------------------------------------------
+int secret_backdoor()
+{
+  char buffer[128];
+
+  fgets(buffer, 128, stdin);
+  return system(buffer);
+}
+
 int handle_msg()
 {
-  char buffer[140]; // [rsp+0h] [rbp-C0h] BYREF
+  user_t  user;
 
-  set_username((int64_t)buffer);
-  set_msg((int64_t)buffer);
+  set_username(user);
+  set_msg(user);
   return puts(">: Msg sent!");
 }
 
-//----- (0000000000000932) ----------------------------------------------------
-char *__fastcall set_msg(int64_t a1)
+char *__fastcall set_msg(user_t user)
 {
-  char s[1024]; // [rsp+10h] [rbp-400h] BYREF
+  char buffer[1024];
 
-  memset(s, 0, sizeof(s));
+  memset(buffer, 0, sizeof(s));
   puts(">: Msg @Unix-Dude");
   printf(">>: ");
-  fgets(s, 1024, stdin);
-  return strncpy((char *)a1, s, *(int *)(a1 + 180));
+  fgets(buffer, 1024, stdin);
+  return strncpy(user.message, buffer, user.size);
 }
 
-//----- (00000000000009CD) ----------------------------------------------------
-int set_username(int64_t a1)
+int set_username(int64_t user)
 {
-  char s[140]; // [rsp+10h] [rbp-90h] BYREF
-  int i; // [rsp+9Ch] [rbp-4h]
+  char buffer[140];
+  int i;
 
-  memset(s, 0, 128);
+  memset(buffer, 0, 128);
   puts(">: Enter your username");
   printf(">>: ");
-  fgets(s, 128, stdin);
-  for (i = 0;i <= 40 && s[i]; ++i)
-    *(_BYTE *)(a1 + i + 140) = s[i];
-  return printf(">: Welcome, %s", (const char *)(a1 + 140));
+  fgets(buffer, 128, stdin);
+  for (i = 0; i <= 40 && buffer[i]; ++i)
+    user->name[i] = buffer[i];
+  return printf(">: Welcome, %s", user.name);
 }
-// 9CD: using guessed type char s[140];
 
-//----- (0000000000000AA8) ----------------------------------------------------
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   puts(

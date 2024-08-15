@@ -67,12 +67,18 @@ exit: 0xf7e5eb70 -> 4159040368
 
 To know wich index to use to 'overflow' our array we need to find the offset beetween `EIP` and the begining of our array:
 ```Shell
-(gdb) disas main
+Guessed arguments:
+arg[0]: 0xffffcdf4 --> 0x0 
 [...]
-0x0804872c <+9>:     sub    $0x1d0,%esp
+gdb-peda$ i f
 [...]
+ Saved registers:
+[...]
+  eip at 0xffffcfbc
 ```
-464(0x1d0) bytes are reserved on the stack, 8 bytes correspond to `EIP` so the offset is 456 bytes. The index corresponding to `EIP` is 114 (456 / 4), because this is an array of DWORD (4 bytes).
+
+We can see the address of the first element in the array (0xffffcdf4) and the address of eip (0xffffcfbc), a substraction give us an offset of 456 bytes (0xffffcfbc - 0xffffcdf4).
+This is an array of int so each element has a size of 4 bytes, so the offset in term of index is 114 (456 / 4).
 
 Let's try to change EIP by '0xaaaaaaaa' (2863311530 in decimal):
 ```Shell

