@@ -10,8 +10,8 @@ level09@OverRide:~$ ls -la level09
 -rwsr-s---+ 1 end users 12959 Oct  2  2016 level09
 ```
 
-Decompiling with Hex-Rays on https://dogbolt.org/ show us that:
-- an unused `secret_backdoor` function is present which take a n input string and use it to execute a call to `system()`. Passing `/bin/sh` should open a shell.
+Decompiling with Hex-Rays on https://dogbolt.org/ shows us that:
+- an unused `secret_backdoor` function is present which takes an input string and use it to execute a call to `system()`. Passing `/bin/sh` should open a shell.
 - the program use the buffer address to store a message (string), the buffer address + 140 to store a username (string) and the buffer address + 180 as a size (int). So we can deduce that this is probably a structure:
 ```
     char    message[140];

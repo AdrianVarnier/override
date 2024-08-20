@@ -39,7 +39,7 @@ First, let's use GDB to take a look at the three memory allocations:
    0x0000000000400869 <+85>:    lea    -0x110(%rbp),%rdx          // user_name[112]
 [...]
  ```
-There is an offset of 48 bytes beetween the password buffer and the user_name buffer. So we know taht only the first 40 bytes will contain the password.
+There is an offset of 48 bytes beetween the password buffer and the user_name buffer. So we know that only the first 40 bytes will contain the password.
 
 Next, we need to print the stack and find out where our buffer is, and this allows us to also peek at values stored higher on the stack:
 ```Shell

