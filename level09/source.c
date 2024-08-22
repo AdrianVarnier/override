@@ -21,7 +21,7 @@ int handle_msg()
   return puts(">: Msg sent!");
 }
 
-char *__fastcall set_msg(user_t user)
+char* set_msg(user_t user)
 {
   char buffer[1024];
 
@@ -46,7 +46,7 @@ int set_username(int64_t user)
   return printf(">: Welcome, %s", user.name);
 }
 
-int __fastcall main(int argc, const char **argv, const char **envp)
+int main(int argc, const char **argv, const char **envp)
 {
   puts(
     "--------------------------------------------\n"

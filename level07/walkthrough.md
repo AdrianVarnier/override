@@ -39,7 +39,7 @@ Input command: read
  Index: 2
  Number at data[2] is 4294967295
 ```
-The program allows us to store numbers in an array and display them.
+The program allows us to store numbers in an array and display them if wanted.
 
 Decompiling with Hex-Rays on https://dogbolt.org/ shows us that:
 - there is an array of unsigned int of 100 elements
@@ -70,7 +70,7 @@ Now, we need to know at which index we should store the address of `system()`. U
 Guessed arguments:
 arg[0]: 0xffffcdf4 --> 0x0 
 [...]
-gdb-peda$ i f
+gdb-peda$ info frame
 [...]
  Saved registers:
 [...]
@@ -89,7 +89,7 @@ Input command: store
  *** ERROR! ***
  Failed to do store command
  ```
-We can't use the 114th index because it's a multiple of 3. But perhaps overflowing it could allow us to reach 114 anyway. The program multiplies the index by 4, so if we use `MAX_UINT_32 / 4` and add 114, we get `1073741938`, which is the same as 114.
+We can't use the 114th index because it's a multiple of 3. But perhaps overflowing the int could allow us to reach 114 anyway. The program multiplies the index by 4, so if we use `MAX_UINT_32 / 4` and add 114, we get `1073741938`, which is the same as 114.
 
 Now, for testing purposes, let's try to change `EIP` by '0xaaaaaaaa' (2863311530 in decimal):
 ```Shell

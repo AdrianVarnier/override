@@ -23,7 +23,7 @@ Invalid Password!
 
 Decompiling with Hex-Rays on https://dogbolt.org/ shows two things:
 - the program parses argv[1] with `scanf()` and compares it with a value
-- if equal to 5276, it opens a shell
+- if it equals 5276, it opens a shell.
 
 ```Shell
 level00@OverRide:~$ ./level00

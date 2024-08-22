@@ -23,7 +23,7 @@ level06@OverRide:~$ ./level06
 -> Enter Serial: whatisserial
 ```
 
-Decompiling with Hex-Rays on https://dogbolt.org/ shows that the correct serial number is obtained through a series of calculations. It depends on the login you suggest, but the idea is that you can put whatever you want as login, then apply the algorithm and retrieve the correct serial number as a result.
+Decompiling with Hex-Rays on https://dogbolt.org/ shows that the correct serial number is obtained through a series of calculations. It depends on the login you suggest, but the idea is that you can put whatever you want as login, then apply the algorithm and retrieve its corresponding serial number as a result.
 
 So the only thing we had to do was copypasting the algorithm from the source code, feed it the login of our choice (`avarnier`), and we got this serial number: `6234492`.
 

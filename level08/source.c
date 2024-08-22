@@ -21,6 +21,7 @@ int main(int argc, const char **argv, const char **envp)
         printf("Usage: %s filename\n", *argv);
     log = fopen("./backups/.log", "w");
     if (!log)
+    
     {
         printf("ERROR: Failed to open %s\n", "./backups/.log");
         exit(1);
